@@ -98,7 +98,11 @@ const PACK_DIRS = [
 ];
 
 const PACK_FILES = [
+  '.gitattributes',
+  '.gitignore',
+  'README.md',
   'metadata.json',
+  'package-lock.json',
   'package.json',
   'Report.md',
   'vite.config.js',

@@ -29,6 +29,20 @@ const placeholderPatterns = [
 const placeholderIds = new Set(['00000000', '00000001', '00000002', '00000003', '00000004', '23300000', '学号']);
 const reportPlaceholderIds = new Set([...placeholderIds].filter((id) => id !== '学号'));
 
+/**
+ * Hygiene rules that keep generated Vite output, dependencies, logs, local
+ * secrets, and submission archives out of source control.
+ */
+const requiredIgnoreEntries = [
+  { label: '依赖目录 node_modules/', tokens: ['node_modules/'] },
+  { label: '生产构建目录 dist/', tokens: ['dist/'] },
+  { label: 'Vite 本地缓存 .vite/', tokens: ['.vite/'] },
+  { label: '环境变量文件 .env', tokens: ['.env', '.env.*'] },
+  { label: '日志文件 *.log', tokens: ['*.log'] },
+  { label: '测试覆盖率目录 coverage/', tokens: ['coverage/'] },
+  { label: '作业生成压缩包 *.zip', tokens: ['*.zip'] },
+];
+
 function isFilledText(value) {
   return typeof value === 'string' && value.trim() && !placeholderPatterns.some((pattern) => value.includes(pattern));
 }
@@ -96,6 +110,24 @@ if (fs.existsSync(reportPath)) {
   }
 } else {
   fail('Report.md 文件不存在，请确认根目录中存在该文件');
+}
+
+// Ignore rules are part of project quality, because generated artifacts and
+// local secrets should not leak into review or submission archives.
+console.log('\n🧹 检查 .gitignore ...');
+const gitignorePath = path.join(ROOT, '.gitignore');
+if (fs.existsSync(gitignorePath)) {
+  pass('.gitignore 文件存在');
+  const gitignoreContent = fs.readFileSync(gitignorePath, 'utf8');
+  for (const entry of requiredIgnoreEntries) {
+    if (entry.tokens.some((token) => gitignoreContent.includes(token))) {
+      pass(`${entry.label} 已配置忽略`);
+    } else {
+      fail(`.gitignore 缺少 ${entry.label} 规则`);
+    }
+  }
+} else {
+  fail('.gitignore 文件不存在，请在项目根目录补充忽略规则');
 }
 
 // A successful build catches route imports and JSX errors before packaging.
