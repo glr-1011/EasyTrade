@@ -212,7 +212,7 @@ export default function AdminProductsPage() {
         ]}
       />
       <Drawer
-        width={520}
+        size="large"
         title={editingProduct ? '编辑商品' : '新增商品'}
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}

@@ -1,6 +1,6 @@
 import { App, Button, Empty, Image, InputNumber, Popconfirm, Space, Table, Typography } from 'antd';
 import { DeleteOutlined, ShoppingOutlined } from '@ant-design/icons';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import PriceText from '../components/shop/PriceText.jsx';
@@ -23,7 +23,8 @@ export default function CartPage() {
     return newItems;
   }, [currentUser.id]);
 
-  const columns = [
+  // 用 useMemo 缓存 columns 定义，避免每次渲染重新创建对象数组
+  const columns = useMemo(() => [
     {
       title: '商品',
       dataIndex: 'product',
@@ -77,7 +78,7 @@ export default function CartPage() {
         </Popconfirm>
       ),
     },
-  ];
+  ], [currentUser.id, reload]);
 
   if (items.length === 0) {
     return (
@@ -117,7 +118,7 @@ export default function CartPage() {
           },
         }}
       />
-      <div className="page-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+      <div className="cart-page-footer page-card">
         <Space>
           <Button
             onClick={() => {
@@ -138,9 +139,9 @@ export default function CartPage() {
         </Space>
         <Space>
           <Typography.Text>已选 {summary.count} 件</Typography.Text>
-          <Typography.Title level={4} style={{ margin: 0 }}>
-            {formatCurrency(summary.total)}
-          </Typography.Title>
+          <Typography.Title level={4} className="cart-total-price">
+              {formatCurrency(summary.total)}
+            </Typography.Title>
           <Button
             type="primary"
             disabled={summary.count === 0}

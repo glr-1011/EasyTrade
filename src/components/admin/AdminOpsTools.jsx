@@ -55,7 +55,7 @@ export default function AdminOpsTools() {
 
       <Drawer
         title="Mock API 请求日志"
-        width={720}
+        size="large"
         open={requestOpen}
         onClose={() => setRequestOpen(false)}
         extra={
@@ -92,7 +92,7 @@ export default function AdminOpsTools() {
 
       <Drawer
         title="后台操作审计"
-        width={760}
+        size="large"
         open={auditOpen}
         onClose={() => setAuditOpen(false)}
         extra={

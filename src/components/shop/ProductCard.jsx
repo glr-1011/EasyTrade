@@ -1,14 +1,26 @@
+import { memo } from 'react';
 import { Button, Card, Space, Tag, Typography } from 'antd';
 import { ShoppingCartOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 import PriceText from './PriceText.jsx';
 
-export default function ProductCard({ product, onAddCart, rank, showSold }) {
+/**
+ * ProductCard —— 商品卡片
+ *
+ * 使用 React.memo 避免父组件无关状态更新时重渲染。
+ * props 均为基本类型或稳定引用，配合父组件 useCallback/useMemo 效果最佳。
+ *
+ * @param {object}   product     商品对象
+ * @param {Function} onAddCart   加购回调（由 useAddToCart 提供的稳定引用）
+ * @param {number}   [rank]      排行名次（1-3 显示徽章）
+ * @param {boolean}  [showSold]  是否显示销量
+ */
+const ProductCard = memo(function ProductCard({ product, onAddCart, rank, showSold }) {
   const navigate = useNavigate();
 
   const discount = product.originalPrice > product.price
-    ? Math.round((1-product.price/product.originalPrice)*100)
+    ? Math.round((1 - product.price / product.originalPrice) * 100)
     : 0;
   const isSoldOut = product.stock === 0;
 
@@ -17,15 +29,15 @@ export default function ProductCard({ product, onAddCart, rank, showSold }) {
       className={`product-card ${isSoldOut ? 'sold-out' : ''}`}
       hoverable
       cover={
-        <div className='product-card-img-wrap'>
-          {rank !== undefined && rank<=3 &&(
-            <span className={`product-rank-badge${rank <= 3 ? ` rank-top-${rank}` : ''}`}>
+        <div className="product-card-img-wrap">
+          {rank !== undefined && rank <= 3 && (
+            <span className={`product-rank-badge rank-top-${rank}`}>
               {rank}
             </span>
           )}
-          {discount > 0 && <span className='discount-badge'>-{discount}%</span>}
-          {isSoldOut && <div className='sold-out-overlay'>已售罄</div>}
-          <img className='product-cover' src={product.image} alt={product.name} />
+          {discount > 0 && <span className="discount-badge">-{discount}%</span>}
+          {isSoldOut && <div className="sold-out-overlay">已售罄</div>}
+          <img className="product-cover" src={product.image} alt={product.name} />
         </div>
       }
       actions={[
@@ -45,10 +57,9 @@ export default function ProductCard({ product, onAddCart, rank, showSold }) {
           {product.subtitle}
         </Typography.Text>
         <PriceText price={product.price} originalPrice={product.originalPrice} />
-        {
-          product.stock > 0 && product.stock <=10 &&(
-            <span className='stock-warning'>仅剩{product.stock}件</span>
-          )}
+        {product.stock > 0 && product.stock <= 10 && (
+          <span className="stock-warning">仅剩 {product.stock} 件</span>
+        )}
         <Space wrap size={6}>
           {product.tags.map((tag) => (
             <Tag key={tag} color={tag === '新品' ? 'green' : 'orange'}>
@@ -64,4 +75,7 @@ export default function ProductCard({ product, onAddCart, rank, showSold }) {
       </Space>
     </Card>
   );
-}
+});
+
+export default ProductCard;
+

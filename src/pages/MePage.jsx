@@ -1,4 +1,4 @@
-import { Avatar, Button, Card, Col, Descriptions, List, Row, Space, Tag, Typography } from 'antd';
+import { Avatar, Button, Card, Col, Descriptions, Flex, Row, Space, Tag, Typography } from 'antd';
 import { ShoppingOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
@@ -43,23 +43,31 @@ export default function MePage() {
         </Col>
         <Col xs={24} lg={12}>
           <Card title="最近订单" extra={<Button type="link" onClick={() => navigate('/orders')}>全部</Button>}>
-            <List
-              dataSource={orders.slice(0, 3)}
-              locale={{ emptyText: '暂无订单' }}
-              renderItem={(order) => (
-                <List.Item actions={[<Button key="detail" type="link" onClick={() => navigate(`/orders/${order.id}`)}>详情</Button>]}>
-                  <List.Item.Meta
-                    avatar={<ShoppingOutlined style={{ fontSize: 24, color: '#f04f3e' }} />}
-                    title={order.orderNo}
-                    description={order.items.map((item) => item.name).join('、')}
-                  />
-                  <Space orientation="vertical" align="end">
-                    <Tag color="blue">{formatOrderStatus(order.status)}</Tag>
-                    <Typography.Text strong>{formatCurrency(order.totalAmount)}</Typography.Text>
-                  </Space>
-                </List.Item>
-              )}
-            />
+            {orders.length === 0 ? (
+              <Typography.Text className="muted">暂无订单</Typography.Text>
+            ) : (
+              <Flex vertical gap={12}>
+                {orders.slice(0, 3).map((order) => (
+                  <Flex key={order.id} align="center" justify="space-between" gap={12}>
+                    <Flex align="center" gap={12} flex={1}>
+                      <ShoppingOutlined style={{ fontSize: 24, color: '#f04f3e' }} />
+                      <div>
+                        <Typography.Text strong>{order.orderNo}</Typography.Text>
+                        <br />
+                        <Typography.Text className="muted" ellipsis>
+                          {order.items.map((item) => item.name).join('、')}
+                        </Typography.Text>
+                      </div>
+                    </Flex>
+                    <Flex vertical align="end" gap={4}>
+                      <Tag color="blue">{formatOrderStatus(order.status)}</Tag>
+                      <Typography.Text strong>{formatCurrency(order.totalAmount)}</Typography.Text>
+                      <Button type="link" size="small" onClick={() => navigate(`/orders/${order.id}`)}>详情</Button>
+                    </Flex>
+                  </Flex>
+                ))}
+              </Flex>
+            )}
           </Card>
         </Col>
       </Row>

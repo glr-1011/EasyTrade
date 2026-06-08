@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import authService from '../services/authService.js';
 import cartService from '../services/cartService.js';
@@ -9,6 +9,24 @@ export function AppProvider({ children }) {
   const [currentAdmin, setCurrentAdmin] = useState(() => authService.getCurrentAdmin());
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
   const [version, setVersion] = useState(0);
+
+  // ─── 主题状态（明/暗，持久化到 localStorage）────────────────────────────────
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem('easytrade_theme') || 'light',
+  );
+
+  /**
+   * 切换主题：将 data-theme 属性写到 <html> 根节点，
+   * theme.css 中通过 [data-theme="dark"] 选择器覆盖 CSS 变量
+   */
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('easytrade_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  }, []);
 
   const refresh = useCallback(() => {
     setVersion((v) => v + 1);
@@ -62,6 +80,8 @@ export function AppProvider({ children }) {
     cartSummary,
     cartDrawerOpen,
     version,
+    theme,
+    toggleTheme,
     refresh,
     refreshCart: refresh,
     openCart,
@@ -71,7 +91,7 @@ export function AppProvider({ children }) {
     logoutUser,
     loginAdmin,
     logoutAdmin,
-  }), [currentUser, currentAdmin, cartCount, cartItems, cartSummary, cartDrawerOpen, version, refresh, openCart, closeCart, loginUser, registerUser, logoutUser, loginAdmin, logoutAdmin]);
+  }), [currentUser, currentAdmin, cartCount, cartItems, cartSummary, cartDrawerOpen, version, theme, toggleTheme, refresh, openCart, closeCart, loginUser, registerUser, logoutUser, loginAdmin, logoutAdmin]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

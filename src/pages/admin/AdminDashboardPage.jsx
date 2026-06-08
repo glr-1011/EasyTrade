@@ -1,4 +1,18 @@
 import { Card, Col, Row, Space, Statistic, Steps, Table, Tag, Typography } from 'antd';
+import { useMemo } from 'react';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 import PermissionNotice from '../../components/admin/PermissionNotice.jsx';
 import { useApp } from '../../contexts/useApp.js';
@@ -9,6 +23,40 @@ import requestLogService from '../../services/requestLogService.js';
 import orderService from '../../services/orderService.js';
 import { formatCurrency, formatOrderStatus } from '../../utils/format.js';
 
+/** 将订单数据按日期聚合为近 N 天的销售额 + 订单量 */
+function buildSalesTrend(orders, days = 7) {
+  const result = [];
+  const today = new Date();
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = `${d.getMonth() + 1}/${d.getDate()}`;
+    const dateStr = d.toISOString().slice(0, 10);
+    const dayOrders = orders.filter(
+      (o) =>
+        o.createdAt?.startsWith(dateStr) &&
+        (o.status === 'paid' || o.status === 'shipped' || o.status === 'finished'),
+    );
+    result.push({
+      date: key,
+      销售额: dayOrders.reduce((s, o) => s + o.totalAmount, 0),
+      订单量: dayOrders.length,
+    });
+  }
+  return result;
+}
+
+/** 按分类统计商品数量 */
+function buildCategoryDist(products) {
+  const map = {};
+  products.forEach((p) => {
+    map[p.categoryId] = (map[p.categoryId] || 0) + 1;
+  });
+  return Object.entries(map).map(([name, value]) => ({ name, value }));
+}
+
+const CHART_COLORS = ['#f04f3e', '#256d5a', '#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'];
+
 export default function AdminDashboardPage() {
   const { currentAdmin, version } = useApp();
   const products = productService.getAdminProducts();
@@ -18,6 +66,10 @@ export default function AdminDashboardPage() {
   const requestLogs = requestLogService.getRequestLogs(5);
   const auditLogs = auditLogService.getAuditLogs(5);
   const scenarioSteps = demoService.getScenarioSteps();
+
+  // 统计图表数据（useMemo 避免每次渲染重新计算）
+  const salesTrend = useMemo(() => buildSalesTrend(orders, 7), [orders.length]);
+  const categoryDist = useMemo(() => buildCategoryDist(products), [products.length]);
 
   return (
     <Space orientation="vertical" size={18} style={{ width: '100%' }}>
@@ -44,6 +96,44 @@ export default function AdminDashboardPage() {
           </Card>
         </Col>
       </Row>
+
+      {/* ─── 销售统计图表区 ──────────────────────────────────────────────────── */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={14}>
+          <Card title="近 7 天销售趋势">
+            <ResponsiveContainer width="100%" height={240}>
+              <LineChart data={salesTrend} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#edf1f5" />
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <YAxis yAxisId="left" tick={{ fontSize: 12 }} tickFormatter={(v) => `¥${v}`} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
+                <Tooltip formatter={(value, name) => name === '销售额' ? [`¥${value}`, name] : [value, name]} />
+                <Legend />
+                <Line yAxisId="left" type="monotone" dataKey="销售额" stroke="#f04f3e" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                <Line yAxisId="right" type="monotone" dataKey="订单量" stroke="#256d5a" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </Card>
+        </Col>
+        <Col xs={24} lg={10}>
+          <Card title="各分类商品数量">
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={categoryDist} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#edf1f5" />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Bar dataKey="value" name="商品数">
+                  {categoryDist.map((_, index) => (
+                    <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Col>
+      </Row>
+
       <Card title="最近订单">
         <Table
           rowKey="id"
@@ -73,12 +163,12 @@ export default function AdminDashboardPage() {
         <Col xs={24} lg={10}>
           <Card title="答辩演示助手">
             <Steps
-              direction="vertical"
+              orientation="vertical"
               size="small"
               current={-1}
               items={scenarioSteps.map((step) => ({
                 title: step.title,
-                description: step.description,
+                content: step.description,
               }))}
             />
           </Card>

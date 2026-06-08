@@ -148,7 +148,7 @@ export default function AdminCategoriesPage() {
       />
 
       <Drawer
-        width={460}
+        size="default"
         title={editingCategory ? '编辑分类' : '新增分类'}
         open={drawerOpen}
         onClose={closeDrawer}

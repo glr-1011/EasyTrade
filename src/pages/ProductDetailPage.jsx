@@ -1,6 +1,6 @@
 import { App, Button, Col, Descriptions, Empty, Image, InputNumber, Row, Space, Tag, Typography } from 'antd';
 import { ShoppingCartOutlined } from '@ant-design/icons';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import PriceText from '../components/shop/PriceText.jsx';
@@ -25,16 +25,16 @@ export default function ProductDetailPage() {
   const category = categoryService.getCategoryById(product.categoryId);
   const canBuy = product.status === 'on' && product.stock > 0;
 
-  const ensureLogin = () => {
+  const ensureLogin = useCallback(() => {
     if (!currentUser) {
       message.warning('请先登录');
       navigate('/login');
       return false;
     }
     return true;
-  };
+  }, [currentUser, message, navigate]);
 
-  const addCart = () => {
+  const addCart = useCallback(() => {
     if (!ensureLogin()) return;
     mockApiService.request({
       method: 'POST',
@@ -48,12 +48,12 @@ export default function ProductDetailPage() {
     refresh();
     openCart();
     message.success('已加入购物车');
-  };
+  }, [ensureLogin, currentUser, product, quantity, refresh, openCart, message]);
 
-  const buyNow = () => {
+  const buyNow = useCallback(() => {
     if (!ensureLogin()) return;
     navigate(`/checkout?buyNow=${product.id}&quantity=${quantity}`);
-  };
+  }, [ensureLogin, navigate, product, quantity]);
 
   return (
     <div className="page-card">
