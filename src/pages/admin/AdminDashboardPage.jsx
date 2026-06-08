@@ -58,7 +58,9 @@ function buildCategoryDist(products) {
 const CHART_COLORS = ['#f04f3e', '#256d5a', '#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'];
 
 export default function AdminDashboardPage() {
-  const { currentAdmin, version } = useApp();
+  const { currentAdmin, version, theme } = useApp();
+  const isDark = theme === 'dark';
+  const gridStroke = isDark ? '#334155' : '#edf1f5';
   const products = productService.getAdminProducts();
   const orders = orderService.getAllOrders();
   const paidOrders = orders.filter((order) => order.status === 'paid' || order.status === 'shipped');
@@ -103,10 +105,10 @@ export default function AdminDashboardPage() {
           <Card title="近 7 天销售趋势">
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={salesTrend} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#edf1f5" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis yAxisId="left" tick={{ fontSize: 12 }} tickFormatter={(v) => `¥${v}`} />
-                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#64748b' }} />
+                <YAxis yAxisId="left" tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#64748b' }} tickFormatter={(v) => `¥${v}`} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#64748b' }} />
                 <Tooltip formatter={(value, name) => name === '销售额' ? [`¥${value}`, name] : [value, name]} />
                 <Legend />
                 <Line yAxisId="left" type="monotone" dataKey="销售额" stroke="#f04f3e" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
@@ -119,9 +121,9 @@ export default function AdminDashboardPage() {
           <Card title="各分类商品数量">
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={categoryDist} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#edf1f5" />
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#64748b' }} />
+                <YAxis tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#64748b' }} />
                 <Tooltip />
                 <Bar dataKey="value" name="商品数">
                   {categoryDist.map((_, index) => (

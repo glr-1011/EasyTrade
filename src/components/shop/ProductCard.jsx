@@ -67,7 +67,7 @@ const ProductCard = memo(function ProductCard({ product, onAddCart, rank, showSo
             </Tag>
           ))}
           {showSold && (
-            <Typography.Text style={{ fontSize: 12, color: '#94a3b8' }}>
+            <Typography.Text className="original-price" style={{ fontSize: 12, textDecoration: 'none' }}>
               已售 {product.sold}
             </Typography.Text>
           )}

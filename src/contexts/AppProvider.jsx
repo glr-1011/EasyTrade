@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { App as AntApp, ConfigProvider } from 'antd';
+import zhCN from 'antd/locale/zh_CN';
 
 import authService from '../services/authService.js';
 import cartService from '../services/cartService.js';
+import { lightTheme, darkTheme } from '../theme/easyTradeTheme.js';
 import { AppContext } from './appContext.js';
 
 export function AppProvider({ children }) {
@@ -93,5 +96,15 @@ export function AppProvider({ children }) {
     logoutAdmin,
   }), [currentUser, currentAdmin, cartCount, cartItems, cartSummary, cartDrawerOpen, version, theme, toggleTheme, refresh, openCart, closeCart, loginUser, registerUser, logoutUser, loginAdmin, logoutAdmin]);
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  const antdTheme = theme === 'dark' ? darkTheme : lightTheme;
+
+  return (
+    <AppContext.Provider value={value}>
+      <ConfigProvider locale={zhCN} theme={antdTheme}>
+        <AntApp>
+          {children}
+        </AntApp>
+      </ConfigProvider>
+    </AppContext.Provider>
+  );
 }
