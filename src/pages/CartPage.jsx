@@ -36,7 +36,7 @@ export default function CartPage() {
     {
       title: '单价',
       width: 130,
-      render: (_, record) => <PriceText price={record.product.price} originalPrice={record.product.originalPrice} />,
+      render: (_, record) => <Typography.Text className="price">{formatCurrency(record.product.price)}</Typography.Text>,
     },
     {
       title: '数量',
@@ -102,7 +102,7 @@ export default function CartPage() {
           },
         }}
       />
-      <div className="page-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+      <div className="page-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 ,position: 'sticky',bottom: 80,boxShadow: '0 -4px 20px rgba(15, 23, 42, 0.08)',zIndex: 10,}}>
         <Space>
           <Button onClick={() => update(() => cartService.setAllSelected(currentUser.id, true))}>全选</Button>
           <Button onClick={() => update(() => cartService.setAllSelected(currentUser.id, false))}>取消选择</Button>

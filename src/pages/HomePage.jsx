@@ -1,4 +1,4 @@
-import { App, Button, Carousel, Col, Input, Row, Space, Statistic, Typography } from 'antd';
+import { App, Button, Carousel, Col, Row, Space, Statistic, Typography } from 'antd';
 import { FireOutlined, SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useMemo, useState, useRef } from 'react';
@@ -8,6 +8,7 @@ import { useApp } from '../contexts/useApp.js';
 import cartService from '../services/cartService.js';
 import categoryService from '../services/categoryService.js';
 import productService from '../services/productService.js';
+import FancySearch from '../components/shop/FancySearch.jsx';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export default function HomePage() {
   const [isScrolled, setIsScrolled] = useState(false);
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 100);
+      setIsScrolled(window.scrollY > 0);
     };
     window.addEventListener('scroll', handleScroll, {passive: true});
     return () => window.removeEventListener('scroll', handleScroll);
@@ -57,23 +58,12 @@ export default function HomePage() {
   return (
     <>
     <div className={`search-sticky-wrap${isScrolled ? ' scrolled' : ''}`}>
-        <Input.Search
-          ref={searchInputRef}
-          size="large"
-          allowClear
-          placeholder={placeholders[placeholderIndex]}
-          onSearch={setKeyword}
-          onChange={(event) => setKeyword(event.target.value)}
-          style={{ width: '100%' }}
-          onFocus={() => setIsSearchFocused(true)}
-          onBlur={() => setIsSearchFocused(false)}
-          onClick={() => {
-            if (isSearchFocused && searchInputRef.current) {
-              searchInputRef.current.blur();
-            }
-          }}
-        />
-      </div>
+      <FancySearch
+        onSearch={setKeyword}
+        placeholder={placeholders[placeholderIndex]}
+      />
+    </div>
+
     <Space orientation="vertical" size={0} style={{ width: '100%' }}>
       <Carousel autoplay dots>
         <div>
