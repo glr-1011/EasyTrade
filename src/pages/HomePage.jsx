@@ -1,21 +1,18 @@
-import { App, Button, Carousel, Col, Input, Row, Space, Typography } from 'antd';
+import { Button, Carousel, Col, Input, Row, Space, Typography } from 'antd';
 import { FireOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import ProductCard from '../components/shop/ProductCard.jsx';
-import { useApp } from '../contexts/useApp.js';
-import cartService from '../services/cartService.js';
+import { useAddToCart } from '../hooks/useAddToCart.js';
 import categoryService from '../services/categoryService.js';
-import mockApiService from '../services/mockApiService.js';
 import productService from '../services/productService.js';
 
 const searchPlaceholders = ['搜索手机、咖啡、台灯、跑鞋', '搜索数码好物', '搜索运动装备', '搜索精选食品'];
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { message } = App.useApp();
-  const { currentUser, openCart, refresh } = useApp();
+  const handleAddCart = useAddToCart();
   const [keyword, setKeyword] = useState('');
 
   
@@ -44,25 +41,8 @@ export default function HomePage() {
   const products = useMemo(() => productService.getVisibleProducts({ keyword }), [keyword]);
   const hotProducts = keyword ? products : productService.getHotProducts(4);
 
-  const handleAddCart = (product) => {
-    if (!currentUser) {
-      message.warning('请先登录再加入购物车');
-      navigate('/login');
-      return;
-    }
-    mockApiService.request({
-      method: 'POST',
-      path: '/cart/items',
-      actor: currentUser,
-      moduleName: '前台购物车',
-      action: '加入购物车',
-      target: product.name,
-      handler: () => cartService.addItem(currentUser.id, product.id, 1),
-    });
-    refresh();
-    openCart();
-    message.success('已加入购物车');
-  };
+  // 搜索关键词变化时用 useCallback 稳定引用
+  const handleSearch = useCallback((value) => setKeyword(value), []);
 
   return (
     <>
@@ -72,7 +52,7 @@ export default function HomePage() {
           size="large"
           allowClear
           placeholder={searchPlaceholders[placeholderIndex]}
-          onSearch={setKeyword}
+          onSearch={handleSearch}
           onChange={(event) => setKeyword(event.target.value)}
           style={{ width: '100%' }}
           onFocus={() => setIsSearchFocused(true)}
