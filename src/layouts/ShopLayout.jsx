@@ -1,4 +1,5 @@
 import { Badge, Button, Drawer, Empty, Image, InputNumber, Layout, List, Space, Typography } from 'antd';
+import {useEffect, useState} from 'react';
 import {
   AppstoreOutlined,
   DashboardOutlined,
@@ -8,6 +9,7 @@ import {
   ShoppingCartOutlined,
   UserOutlined,
 } from '@ant-design/icons';
+import { useEffect, useReducer } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useApp } from '../contexts/useApp.js';
@@ -31,16 +33,46 @@ function selectedKey(pathname) {
 
 export default function ShopLayout() {
   const location = useLocation();
+
+  const [headerHidden, setHeaderHidden] = useState(false);
+  useEffect(()=>{
+    let lastScrollY = window.scrollY;
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if(currentScrollY > 100 && lastScrollY < currentScrollY) {
+        setHeaderHidden(true);
+      }
+      else{
+        setHeaderHidden(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, {passive: true});
+    return () => window.removeEventListener('scroll', handleScroll);
+    
+  }, []);
   const navigate = useNavigate();
   const { cartCount, cartDrawerOpen, closeCart, currentUser, logoutUser, openCart: openCartDrawer, refresh } = useApp();
   const activeKey = selectedKey(location.pathname);
 
+  // 本地 state 持有购物车快照，Drawer 打开时强制刷新
+  const [localVersion, forceUpdate] = useReducer((n) => n + 1, 0);
+
+  useEffect(() => {
+    if (cartDrawerOpen) {
+      forceUpdate(); // Drawer 每次打开时重新从 localStorage 读取
+    }
+  }, [cartDrawerOpen]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const cartItems = currentUser ? cartService.getCart(currentUser.id) : [];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const cartSummary = currentUser ? cartService.getSelectedSummary(currentUser.id) : { count: 0, total: 0 };
+  void localVersion; // 消费 localVersion，使上方两行在 forceUpdate 后重新执行
 
   const updateCart = (action) => {
     action();
     refresh();
+    forceUpdate(); // Drawer 内操作（删除/改数量）后立即刷新列表
   };
 
   const goCheckout = () => {
@@ -50,7 +82,7 @@ export default function ShopLayout() {
 
   return (
     <Layout className="shop-layout">
-      <Layout.Header className="shop-header">
+      <Layout.Header className={`shop-header${headerHidden ? ' hidden' : ''}`}>
         <div className="shop-header-inner">
           <div className="shop-header-main">
             <Link className="brand" to="/">
